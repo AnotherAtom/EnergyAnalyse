@@ -116,7 +116,7 @@ params = {
 params['C_0'] = 0.1 * params['Cmax']
 params['C_n'] = 0.5 * params['Cmax']
 
-prof = []
+
 yearprf = []
 
 
@@ -127,7 +127,7 @@ daylyprofit = []
 for year in range(2019, 2024):
     profsum = 0
     prof = []
-    print(profsum)
+    
     for month in range(1, 13):
         if month == 2:
             if year % 4 == 0:
@@ -160,7 +160,8 @@ plt.bar(Yearly["Year"],yearprf)
 plt.xlabel("year")
 plt.ylabel("profit in DKK")
 plt.title("yerly profit from 2019 to 2023")
-
+plt.show()
+plt.close()
 
 #2.2
 
@@ -171,15 +172,209 @@ plt.xlabel("year")
 plt.ylabel("profit in DKK")
 plt.legend(["Profit", "Price"])
 plt.title("yerly profit from 2019 to 2023")
+plt.show()
+plt.close()
 
 
 
 
+
+#2.3 
+
+params = {
+    'Pmax': 5,
+    'n_c': 0.95,
+    'n_d': 0.95,
+    'Cmax': 10
+}
+params['C_0'] = 0.1 * params['Cmax']
+params['C_n'] = 0.5 * params['Cmax']
+
+
+yearprf95 = []
+
+
+daylyprofit95 = []
+
+
+for year in range(2019, 2024):
+    profsum95 = 0
+    prof = []
+    for month in range(1, 13):
+        if month == 2:
+            if year % 4 == 0:
+                d = 30
+            else:
+                d = 29
+        elif month in [4, 6, 9, 11]:
+            d = 31
+        else:
+            d = 32
+        for day in range(1, d):
+            t_s = pd.Timestamp(dt.datetime(year, month, day, 0, 0, 0))
+            t_e = pd.Timestamp(dt.datetime(year, month, day, 23, 0, 0))
+            p = df_prices.loc[(df_prices["HourDK"]>=t_s) & (df_prices["HourDK"]<=t_e),"Sell"].values
+            profitOpt, p_cOpt, p_dOpt, XOpt, dayprof = Optimizer(params, p)
+            prof.append(profitOpt)
+            daylyprofit95.append(profitOpt)
+    profsum95 = sum(prof)
+    #print("Profit for " + str(year) + ": " + str(profsum) + " DKK.")
+    yearprf95.append(profsum95)
+
+
+params = {
+    'Pmax': 5,
+    'n_c': 0.90,
+    'n_d': 0.90,
+    'Cmax': 10
+}
+params['C_0'] = 0.1 * params['Cmax']
+params['C_n'] = 0.5 * params['Cmax']
+
+
+yearprf90 = []
+
+
+daylyprofit90 = []
+
+
+for year in range(2019, 2024):
+    profsum90 = 0
+    prof = []
+
+    for month in range(1, 13):
+        if month == 2:
+            if year % 4 == 0:
+                d = 30
+            else:
+                d = 29
+        elif month in [4, 6, 9, 11]:
+            d = 31
+        else:
+            d = 32
+        for day in range(1, d):
+            t_s = pd.Timestamp(dt.datetime(year, month, day, 0, 0, 0))
+            t_e = pd.Timestamp(dt.datetime(year, month, day, 23, 0, 0))
+            p = df_prices.loc[(df_prices["HourDK"]>=t_s) & (df_prices["HourDK"]<=t_e),"Sell"].values
+            profitOpt, p_cOpt, p_dOpt, XOpt, dayprof = Optimizer(params, p)
+            prof.append(profitOpt)
+            daylyprofit90.append(profitOpt)
+    profsum90 = sum(prof)
+    #print("Profit for " + str(year) + ": " + str(profsum) + " DKK.")
+    yearprf90.append(profsum90)
+
+    
+plt.figure()
+plt.bar(Yearly["Year"],yearprf)
+plt.bar(Yearly["Year"],yearprf95)
+plt.bar(Yearly["Year"],yearprf90)
+plt.xlabel("year")
+plt.ylabel("profit in DKK")
+plt.title("yerly profit from 2019 to 2023")
+plt.legend(["Efficiency 0.99", "Efficiency 0.95", "Efficiency 0.90"])
+plt.show()
+
+
+
+
+"""
 #2.3 ikke færdig
 
+parms95 = {
+    'Pmax': 5,
+    'n_c': 0.95,
+    'n_d': 0.95,
+    'Cmax': 10
+}
+
+params['C_0'] = 0.1 * params['Cmax']
+params['C_n'] = 0.5 * params['Cmax']
+
+
+yearprf95 = []
+
+
+#for day in range(len(df_prices["HourDK"])):
+daylyprofit95 = []
 
 
 
+for year in range(2019, 2024):
+    profsum = 0
+    prof = []
+    
+    for month in range(1, 13):
+        if month == 2:
+            if year % 4 == 0:
+                d = 30
+            else:
+                d = 29
+        elif month in [4, 6, 9, 11]:
+            d = 31
+        else:
+            d = 32
+        for day in range(1, d):
+            t_s = pd.Timestamp(dt.datetime(year, month, day, 0, 0, 0))
+            t_e = pd.Timestamp(dt.datetime(year, month, day, 23, 0, 0))
+            p = df_prices.loc[(df_prices["HourDK"]>=t_s) & (df_prices["HourDK"]<=t_e),"Sell"].values
+            profitOpt, p_cOpt, p_dOpt, XOpt, daylyprof = Optimizer(params, p)
+            prof.append(profitOpt)
+            daylyprofit95.append(profitOpt)
+    profsum95 = sum(prof)
+    print("Profit for " + str(year) + ": " + str(profsum95) + " DKK.")
+    yearprf95.append(profsum95)
+    
+    
+daylyprofit90 = []
+yearprf90 = []
+
+
+parms90 = {
+    'Pmax': 5,
+    'n_c': 0.90,
+    'n_d': 0.90,
+    'Cmax': 10
+}
+
+params['C_0'] = 0.1 * params['Cmax']
+params['C_n'] = 0.5 * params['Cmax']
+
+
+for year in range(2019, 2024):
+    profsum = 0
+    prof = []
+   
+    for month in range(1, 13):
+        if month == 2:
+            if year % 4 == 0:
+                d = 30
+            else:
+                d = 29
+        elif month in [4, 6, 9, 11]:
+            d = 31
+        else:
+            d = 32
+        for day in range(1, d):
+            t_s = pd.Timestamp(dt.datetime(year, month, day, 0, 0, 0))
+            t_e = pd.Timestamp(dt.datetime(year, month, day, 23, 0, 0))
+            p = df_prices.loc[(df_prices["HourDK"]>=t_s) & (df_prices["HourDK"]<=t_e),"Sell"].values
+            profitOpt, p_cOpt, p_dOpt, XOpt, daylyprof = Optimizer(params, p)
+            prof.append(profitOpt)
+            daylyprofit90.append(profitOpt)
+    profsum90 = sum(prof)
+    print("Profit for " + str(year) + ": " + str(profsum90) + " DKK.")
+    yearprf90.append(profsum90)
+
+
+plt.figure()
+plt.bar(Yearly["Year"],yearprf)
+plt.bar(Yearly["Year"],yearprf95)
+plt.bar(Yearly["Year"],yearprf90)
+plt.xlabel("year")
+plt.ylabel("profit in DKK")
+plt.title("yerly profit from 2019 to 2023")
+
+"""
 """
 prof2 = []
 

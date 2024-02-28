@@ -99,7 +99,6 @@ def Optimizer(params, p):
     n = len(p)
     p_c = cp.Variable(n)
     p_d = cp.Variable(n)
-    print(p_c)
     X   = cp.Variable(n)
     profit = cp.sum(p_d@p - p_c@p)
     daylyprof = []
