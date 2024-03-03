@@ -121,8 +121,41 @@ def Optimizer(params, p):
     problem.solve(solver=cp.ECOS)
     
     return profit.value, p_c.value, p_d.value, X.value, daylyprof
-     
-     
+
+
+
+
+def ProsumerOptimizer(params, l_b, l_s, p_PV, p_L):
+
+    import cvxpy as cp    
+
+    n = len(l_b)
+    p_c = cp.Variable(n)
+    p_d = cp.Variable(n)
+    p_b = cp.Variable(n)
+    p_s = cp.Variable(n)
+    X   = cp.Variable(n)
+    cost = cp.sum(p_b@l_b - p_s@l_s)
+    
+    constraints = [p_c >= 0, 
+                   p_d >= 0, 
+                   p_c <= params['Pmax'], 
+                   p_d <= params['Pmax'],
+                   p_s >= 0,
+                   p_b >= 0]
+    constraints += [X >= 0, X <= params['Cmax']]
+    constraints += [X[0]== params['C_0'] + p_c[0]*params['n_c'] - p_d[0]/params['n_d']]
+    constraints += [p_PV + p_b + p_d == p_L + p_s + p_c]
+    
+    constraints += [X[1:] == X[:-1] + p_c[1:]*params['n_c'] - p_d[1:]/params['n_d']]
+    
+    constraints += [X[n-1]>=params['C_n']]
+    
+    problem = cp.Problem(cp.Minimize(cost), constraints)
+    problem.solve(solver=cp.ECOS)
+    
+    return cost.value, p_c.value, p_d.value, p_b.value, p_s.value, X.value
+
 """"
 #ikke god 
 def Netting(df_pro, df_prices):

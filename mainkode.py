@@ -6,6 +6,7 @@ from Functions import PricesDK
 from Functions import LoadData
 #from Functions import Netting
 from Functions import Optimizer
+from Functions import ProsumerOptimizer
 ### Import price and prosumer data ###
 df_prices, df_pro = LoadData()
 
@@ -277,6 +278,64 @@ plt.show()
 
 
 
+#%%
+
+### task 3 ###
+
+#3.1
+
+
+
+
+
+
+
+
+
+
+# 2.3?
+# the params for this assignamet
+params = {
+    'Pmax': 5,
+    'n_c': 0.99,
+    'n_d': 0.99,
+    'Cmax': 10
+}
+params['C_0'] = 0.1 * params['Cmax']
+params['C_n'] = 0.5 * params['Cmax']
+
+consuption_cost = []
+
+
+for year in range(2022, 2024):
+    for month in range(1, 13):
+        if month == 2:
+            if year % 4 == 0:
+                d = 30
+            else:
+                d = 29
+        elif month in [4, 6, 9, 11]:
+            d = 31
+        else:
+            d = 32
+        for day in range(1, d):
+            # strings for buy and sell prices and PV and Load
+            # taken from hands on
+            t_s = pd.Timestamp(dt.datetime(year, month, day, 0, 0, 0))
+            t_e = pd.Timestamp(dt.datetime(year, month, day, 23, 0, 0))
+            l_b = df_prices.loc[(df_prices["HourDK"]>=t_s) & (df_prices["HourDK"]<=t_e),"Buy"].values
+            l_s = df_prices.loc[(df_prices["HourDK"]>=t_s) & (df_prices["HourDK"]<=t_e),"Sell"].values
+            p_PV = df_pro.loc[(df_pro["HourDK"]>=t_s) & (df_pro["HourDK"]<=t_e),"PV"].values
+            p_L = df_pro.loc[(df_pro["HourDK"]>=t_s) & (df_pro["HourDK"]<=t_e),"Load"].values
+            # Call the ProsumerOptimizer function
+            costOpt, p_cOpt, p_dOpt, p_bOpt, p_sOpt, XOpt = ProsumerOptimizer(params, l_b, l_s, p_PV, p_L)
+            consuption_cost.append(costOpt)
+    print("The cost for" + year + "is equal to:", costOpt.sum)
+
+
+
+
+
 """
 #2.3 ikke færdig
 
@@ -512,4 +571,6 @@ df_pro["Sell"] = df_prices["Sell"]
 Net = Netting(df_pro, df_prices)
 print("The yearly netting results are: \n", Net[["Year","Profit"]])
 """
+
+
 
