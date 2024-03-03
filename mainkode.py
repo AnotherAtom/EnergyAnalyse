@@ -283,11 +283,49 @@ plt.show()
 ### task 3 ###
 
 #3.1
+df_pro['consumer_cost'] = df_pro['Load'] * df_prices['Buy']
+
+df_pro['year'] = df_pro['HourDK'].dt.year
+yearly_consumer_cost = df_pro.groupby('year')['consumer_cost'].sum()
+print(yearly_consumer_cost)
+
+"""
+for i in len (df_pro["HourDK"]):
+    df_pro[consumer_cost] = df_pro["Load"] * df_prices["Buy"]
+    if df_pro["HourDK"].dt.year[i] == 2022:
+        df_pro["Year"] = 2022
+
+    else:
+        df_pro["Year"] = 2023
+
+    
+
+day_load22 = df_pro.loc[df_pro["HourDK"].dt.year.isin([2022])].groupby(df_pro["HourDK"].dt.date)["Load"].sum().reset_index()
+day_price22 =df_prices.loc[df_prices["HourDK"].dt.year.isin([2022])].groupby(df_prices["HourDK"].dt.date)["Buy"].mean().reset_index()
+day_load23 = df_pro.loc[df_pro["HourDK"].dt.year.isin([2023])].groupby(df_pro["HourDK"].dt.date)["Load"].sum().reset_index()
+day_price23 =df_prices.loc[df_prices["HourDK"].dt.year.isin([2023])].groupby(df_prices["HourDK"].dt.date)["Buy"].mean().reset_index()
+day_con22 = day_load22["Load"] * day_price22["Buy"]
+print("total consumption cost for 2022: \n", day_con22.sum())
+day_con23 = day_load23["Load"] * day_price23["Buy"]
+print("total consumption cost for 2023: \n", day_con23.sum())
+
+"""
+
+# årligt esteimat for forbrug
+df_year_load = df_pro.groupby(df_pro["HourDK"].dt.year)["Load"].sum().reset_index()
+print( "total load for each year: \n", df_year_load)
+
+
+df_year_buy = df_prices.loc[df_prices["HourDK"].dt.year.isin([2022, 2023])].groupby(df_prices["HourDK"].dt.year)["Buy"].mean().reset_index()
+
+print("avage price for buy for each year: \n", df_year_buy)
 
 
 
+print("total price for load for each year: \n", df_year_buy["Buy"] * df_year_load["Load"])
 
 
+#2.2
 
 
 
@@ -305,7 +343,7 @@ params['C_0'] = 0.1 * params['Cmax']
 params['C_n'] = 0.5 * params['Cmax']
 
 consuption_cost = []
-
+total_cost = 0
 
 for year in range(2022, 2024):
     for month in range(1, 13):
@@ -330,11 +368,14 @@ for year in range(2022, 2024):
             # Call the ProsumerOptimizer function
             costOpt, p_cOpt, p_dOpt, p_bOpt, p_sOpt, XOpt = ProsumerOptimizer(params, l_b, l_s, p_PV, p_L)
             consuption_cost.append(costOpt)
-    print("The cost for" + year + "is equal to:", costOpt.sum)
+            total_cost += costOpt
+            #print(" costOpt" + str(costOpt) + "+p_cOpt" + str(p_cOpt) + "+p_dOpt" + str(p_dOpt) + "+p_bOpt" + str(p_bOpt) + "+p_sOpt" + str(p_sOpt) + "+XOpt" + str(XOpt))
+    print("The cost for " + str(year) + " is equal to:" + str(total_cost) + " DKK.")
+    total_cost = 0
 
 
 
-
+#%%
 
 """
 #2.3 ikke færdig
@@ -574,3 +615,5 @@ print("The yearly netting results are: \n", Net[["Year","Profit"]])
 
 
 
+
+# %%
