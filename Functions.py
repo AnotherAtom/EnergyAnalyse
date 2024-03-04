@@ -7,39 +7,42 @@ def PricesDK(df_prices):
     df_prices["Sell"] = df_prices["SpotPriceDKK"]
     
     # Define the fixed Tax and TSO columns
-    df_prices["Tax"] = 0.8
-    df_prices["TSO"] = 0.1
+    # multiply by 1000 to get the price in DKK/MWh
+    df_prices["Tax"] = 1000*0.8
+    df_prices["TSO"] = 1000*0.1
     
     
 
     ### Add the DSO tariffs ###
 
 
+    #dso shold be devided by 100 and multiplied by 1000 to get the price in DKK/MWh
+
     # winter low
     df_prices.loc[(df_prices["HourDK"].dt.month.isin([10,11,12,1,2,3])) 
-     & (df_prices["HourDK"].dt.hour.isin([0,1,2,3,4,5,6])), "DSO"] = 15
+     & (df_prices["HourDK"].dt.hour.isin([0,1,2,3,4,5,6])), "DSO"] = 15*10
 
 
     # winter high
     df_prices.loc[(df_prices["HourDK"].dt.month.isin([10,11,12,1,2,3])) 
-     & (df_prices["HourDK"].dt.hour.isin([7,8,9,10,11,12,13,14,15,16,17,22,23])), "DSO"] = 45
+     & (df_prices["HourDK"].dt.hour.isin([7,8,9,10,11,12,13,14,15,16,17,22,23])), "DSO"] = 45*10
     
     # winter peak
     df_prices.loc[(df_prices["HourDK"].dt.month.isin([10,11,12,1,2,3])) 
-     & (df_prices["HourDK"].dt.hour.isin([18,19,20,21])), "DSO"] = 135
+     & (df_prices["HourDK"].dt.hour.isin([18,19,20,21])), "DSO"] = 135*10
     
 
     #summer low
     df_prices.loc[(df_prices["HourDK"].dt.month.isin([4,5,6,7,8,9])) 
-     & (df_prices["HourDK"].dt.hour.isin([0,1,2,3,4,5,6])), "DSO"] = 15
+     & (df_prices["HourDK"].dt.hour.isin([0,1,2,3,4,5,6])), "DSO"] = 15*10
     
     # summer high
     df_prices.loc[(df_prices["HourDK"].dt.month.isin([4,5,6,7,8,9])) 
-     & (df_prices["HourDK"].dt.hour.isin([7,8,9,10,11,12,13,14,15,16,17,22,23])), "DSO"] = 23
+     & (df_prices["HourDK"].dt.hour.isin([7,8,9,10,11,12,13,14,15,16,17,22,23])), "DSO"] = 23*10
 
     # summer peak
     df_prices.loc[(df_prices["HourDK"].dt.month.isin([4,5,6,7,8,9])) 
-     & (df_prices["HourDK"].dt.hour.isin([18,19,20,21])), "DSO"] = 60
+     & (df_prices["HourDK"].dt.hour.isin([18,19,20,21])), "DSO"] = 60*10
 
     
     
@@ -65,9 +68,10 @@ def LoadData():
     # Convert to datetime
     df_prices["HourDK"] = pd.to_datetime(df_prices["HourDK"])
     
+    """
     # Convert prices to DKK/mwh - tjæk om det er rigtigt
-    df_prices['SpotPriceDKK'] = df_prices['SpotPriceDKK']/(1000^2)
-    
+    df_prices['SpotPriceDKK'] = df_prices['SpotPriceDKK']
+    """
     # Filter only DK2 prices
     df_prices = df_prices.loc[df_prices['PriceArea']=="DK2"]
     

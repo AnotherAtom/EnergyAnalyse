@@ -4,11 +4,9 @@ import datetime as dt
 import numpy as np
 from Functions import PricesDK
 from Functions import LoadData
-#from Functions import Netting
 from Functions import Optimizer
 from Functions import ProsumerOptimizer
 from Functions import Netting
-
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 
@@ -295,27 +293,6 @@ df_pro["Year"] = df_pro["HourDK"].dt.year
 yearly_consumer_cost = df_pro.groupby('Year')['consumer_cost'].sum().reset_index()
 print(yearly_consumer_cost)
 
-"""
-for i in len (df_pro["HourDK"]):
-    df_pro[consumer_cost] = df_pro["Load"] * df_prices["Buy"]
-    if df_pro["HourDK"].dt.year[i] == 2022:
-        df_pro["Year"] = 2022
-
-    else:
-        df_pro["Year"] = 2023
-
-    
-
-day_load22 = df_pro.loc[df_pro["HourDK"].dt.year.isin([2022])].groupby(df_pro["HourDK"].dt.date)["Load"].sum().reset_index()
-day_price22 =df_prices.loc[df_prices["HourDK"].dt.year.isin([2022])].groupby(df_prices["HourDK"].dt.date)["Buy"].mean().reset_index()
-day_load23 = df_pro.loc[df_pro["HourDK"].dt.year.isin([2023])].groupby(df_pro["HourDK"].dt.date)["Load"].sum().reset_index()
-day_price23 =df_prices.loc[df_prices["HourDK"].dt.year.isin([2023])].groupby(df_prices["HourDK"].dt.date)["Buy"].mean().reset_index()
-day_con22 = day_load22["Load"] * day_price22["Buy"]
-print("total consumption cost for 2022: \n", day_con22.sum())
-day_con23 = day_load23["Load"] * day_price23["Buy"]
-print("total consumption cost for 2023: \n", day_con23.sum())
-
-"""
 
 # årligt esteimat for forbrug
 df_year_load = df_pro.groupby(df_pro["HourDK"].dt.year)["Load"].sum().reset_index()
@@ -386,7 +363,7 @@ plt.show()
 
 
 
-plt.scatter(df_scatter["HourDKstring"], df_scatter["savings"])
+plt.scatter(df_scatter["HourDK"], df_scatter["savings"])
 plt.xlabel("Time")
 plt.ylabel("Savings")
 plt.title("Savings over Time")
