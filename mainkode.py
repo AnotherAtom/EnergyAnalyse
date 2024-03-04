@@ -285,7 +285,9 @@ plt.show()
 #%%
 
 ### task 3 ###
-
+#convert buy and sell to dkk/kwh
+df_prices["Buy"] = df_prices["Buy"] / 1000
+df_prices["Sell"] = df_prices["Sell"] / 1000
 """
 # covert from kw to mw
 df_pro["Load"] = df_pro["Load"] / 1000
@@ -326,9 +328,17 @@ print(yearly_consumer_cost["consumer_cost"]+Net["Profit"])
 
 df_pro["savings"] = df_pro["Profit"] + df_pro["consumer_cost"]
 
+df_pro["Profit"] + df_pro["consumer_cost"]
+
+
+
 
 
 df_scatter = df_pro.groupby(df_pro["HourDK"].dt.date)["savings"].sum().reset_index()
+
+
+
+
 
 
 #%% 
@@ -381,9 +391,7 @@ plt.show()
 # the params for this assignamet
 
 
-#convert buy and sell to dkk/kwh
-df_prices["Buy"] = df_prices["Buy"] / 1000
-df_prices["Sell"] = df_prices["Sell"] / 1000
+
 
 
 params = {
