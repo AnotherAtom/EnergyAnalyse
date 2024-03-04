@@ -156,24 +156,28 @@ def ProsumerOptimizer(params, l_b, l_s, p_PV, p_L):
     
     return cost.value, p_c.value, p_d.value, p_b.value, p_s.value, X.value
 
-""""
-#ikke god 
+
 def Netting(df_pro, df_prices):
+    
+    import pandas as pd
+    
+    net_day =[]
+
+   
+
+    # Add buy/sell prices
+    df_pro["Buy"] = df_prices["Buy"]
+    df_pro["Sell"] = df_prices["Sell"]
+
+    df_pro["Export"] = (df_pro["PV"] - df_pro["Load"]).where(df_pro["PV"] > df_pro["Load"], other=0)
+    df_pro["Import"] = (df_pro["Load"] - df_pro["PV"]).where(df_pro["Load"] > df_pro["PV"], other=0)
+    df_pro['Profit'] = df_pro["Export"]*df_pro["Sell"] - df_pro["Import"]*df_pro["Buy"]
+
+    net_day.append(df_pro["Profit"].sum()) 
+    Net = df_pro.groupby('Year').agg({'Profit': 'sum'}).reset_index()
+        
+   
+    
+    return Net
 
 
-
-    # Calculate yearly price statistics
-        df_prices_mean = df_prices.groupby('Year').agg({'Buy': 'mean', 'Sell': 'mean'}).reset_index()
-
-        # Calculate yearly statistics
-        df_sum = df_pro.groupby('Year').agg({'PV': 'sum', 'Load': 'sum'}).reset_index()
-
-        # Calculate yearly Imports/Exports
-        df_sum["Export"] = (df_sum["PV"] - df_sum["Load"]).where(df_sum["PV"] > df_sum["Load"], other=0)
-        df_sum["Import"] = (df_sum["Load"] - df_sum["PV"]).where(df_sum["Load"] > df_sum["PV"], other=0)
-
-        Net = pd.merge(df_prices_mean, df_sum, on='Year')
-        Net['Profit'] = Net["Export"]*Net["Sell"] - Net["Import"]*Net["Buy"]
-
-        return Net
-"""

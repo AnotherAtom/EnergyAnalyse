@@ -1,15 +1,20 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import datetime as dt
-
+import numpy as np
 from Functions import PricesDK
 from Functions import LoadData
 #from Functions import Netting
 from Functions import Optimizer
 from Functions import ProsumerOptimizer
+from Functions import Netting
+
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+
+
 ### Import price and prosumer data ###
 df_prices, df_pro = LoadData()
-
 df_prices = PricesDK(df_prices)
 
 Yearly = df_prices.groupby(df_prices["HourDK"].dt.year)["SpotPriceDKK"].mean().reset_index()
@@ -285,8 +290,9 @@ plt.show()
 #3.1
 df_pro['consumer_cost'] = df_pro['Load'] * df_prices['Buy']
 
-df_pro['year'] = df_pro['HourDK'].dt.year
-yearly_consumer_cost = df_pro.groupby('year')['consumer_cost'].sum()
+df_pro["Month"] = df_pro["HourDK"].dt.month
+df_pro["Year"] = df_pro["HourDK"].dt.year
+yearly_consumer_cost = df_pro.groupby('Year')['consumer_cost'].sum().reset_index()
 print(yearly_consumer_cost)
 
 """
@@ -320,23 +326,80 @@ df_year_buy = df_prices.loc[df_prices["HourDK"].dt.year.isin([2022, 2023])].grou
 
 print("avage price for buy for each year: \n", df_year_buy)
 
+load_price_year = df_year_buy["Buy"] * df_year_load["Load"]
+
+print("total price for load for each year: \n", load_price_year)
 
 
-print("total price for load for each year: \n", df_year_buy["Buy"] * df_year_load["Load"])
+#3.2
+
+Net = Netting(df_pro, df_prices)
+
+#consumer cost er negativ 
+print(yearly_consumer_cost["consumer_cost"])
+print(Net["Profit"])
+print(yearly_consumer_cost["consumer_cost"]+Net["Profit"])
 
 
-#2.2
+df_pro["savings"] = df_pro["Profit"] + df_pro["consumer_cost"]
+
+
+
+df_scatter = df_pro.groupby(df_pro["HourDK"].dt.date)["savings"].sum().reset_index()
+
+
+#%% 
+
+regtime = np.arange(0, len(df_scatter["HourDK"]))
+
+df_scatter["cumulative_savings"] = df_scatter["savings"].cumsum()
+
+#df_scatter["HourDKstring"] = df_scatter["HourDK"].to_numpy().astype(str)
+# We load the csv files columns into numpy arrays
+x =regtime
+y = df_scatter["cumulative_savings"].values
+
+# Create polynomial features
+poly = PolynomialFeatures(degree=3, include_bias=False).fit_transform(x.reshape(-1, 1))
+
+# Fit linear regression model on polynomial features
+LinReg_poly = LinearRegression().fit(poly, y)
+LinPred_poly = LinReg_poly.predict(poly)
+
+# Print the residuals, intercept, and coefficients
+print("Intercept (beta0):", LinReg_poly.intercept_)
+print("Coefficients (beta1, beta2, beta3):", LinReg_poly.coef_)
+
+# Plot the scatter plot and regression line
+plt.scatter(x, y, c='b', alpha=0.5, label='Data')
+plt.plot(x, LinPred_poly, color='r', label='Regression Line')
+
+# Set the labels for x-, y-axes & title
+plt.xlabel('Descriptive Variable (x)')
+plt.ylabel('Predicted Variable (y)')
+plt.title('3rd Degree Polynomial Regression Model')
+
+# Show the legends & plot
+plt.legend()
+plt.show()
 
 
 
 
+plt.scatter(df_scatter["HourDKstring"], df_scatter["savings"])
+plt.xlabel("Time")
+plt.ylabel("Savings")
+plt.title("Savings over Time")
+plt.show()
 
-# 2.3?
+
+#%%
+# 3.3?
 # the params for this assignamet
 params = {
     'Pmax': 5,
-    'n_c': 0.99,
-    'n_d': 0.99,
+    'n_c': 0.95,
+    'n_d': 0.95,
     'Cmax': 10
 }
 params['C_0'] = 0.1 * params['Cmax']
@@ -376,244 +439,3 @@ for year in range(2022, 2024):
 
 
 #%%
-
-"""
-#2.3 ikke færdig
-
-parms95 = {
-    'Pmax': 5,
-    'n_c': 0.95,
-    'n_d': 0.95,
-    'Cmax': 10
-}
-
-params['C_0'] = 0.1 * params['Cmax']
-params['C_n'] = 0.5 * params['Cmax']
-
-
-yearprf95 = []
-
-
-#for day in range(len(df_prices["HourDK"])):
-daylyprofit95 = []
-
-
-
-for year in range(2019, 2024):
-    profsum = 0
-    prof = []
-    
-    for month in range(1, 13):
-        if month == 2:
-            if year % 4 == 0:
-                d = 30
-            else:
-                d = 29
-        elif month in [4, 6, 9, 11]:
-            d = 31
-        else:
-            d = 32
-        for day in range(1, d):
-            t_s = pd.Timestamp(dt.datetime(year, month, day, 0, 0, 0))
-            t_e = pd.Timestamp(dt.datetime(year, month, day, 23, 0, 0))
-            p = df_prices.loc[(df_prices["HourDK"]>=t_s) & (df_prices["HourDK"]<=t_e),"Sell"].values
-            profitOpt, p_cOpt, p_dOpt, XOpt, daylyprof = Optimizer(params, p)
-            prof.append(profitOpt)
-            daylyprofit95.append(profitOpt)
-    profsum95 = sum(prof)
-    print("Profit for " + str(year) + ": " + str(profsum95) + " DKK.")
-    yearprf95.append(profsum95)
-    
-    
-daylyprofit90 = []
-yearprf90 = []
-
-
-parms90 = {
-    'Pmax': 5,
-    'n_c': 0.90,
-    'n_d': 0.90,
-    'Cmax': 10
-}
-
-params['C_0'] = 0.1 * params['Cmax']
-params['C_n'] = 0.5 * params['Cmax']
-
-
-for year in range(2019, 2024):
-    profsum = 0
-    prof = []
-   
-    for month in range(1, 13):
-        if month == 2:
-            if year % 4 == 0:
-                d = 30
-            else:
-                d = 29
-        elif month in [4, 6, 9, 11]:
-            d = 31
-        else:
-            d = 32
-        for day in range(1, d):
-            t_s = pd.Timestamp(dt.datetime(year, month, day, 0, 0, 0))
-            t_e = pd.Timestamp(dt.datetime(year, month, day, 23, 0, 0))
-            p = df_prices.loc[(df_prices["HourDK"]>=t_s) & (df_prices["HourDK"]<=t_e),"Sell"].values
-            profitOpt, p_cOpt, p_dOpt, XOpt, daylyprof = Optimizer(params, p)
-            prof.append(profitOpt)
-            daylyprofit90.append(profitOpt)
-    profsum90 = sum(prof)
-    print("Profit for " + str(year) + ": " + str(profsum90) + " DKK.")
-    yearprf90.append(profsum90)
-
-
-plt.figure()
-plt.bar(Yearly["Year"],yearprf)
-plt.bar(Yearly["Year"],yearprf95)
-plt.bar(Yearly["Year"],yearprf90)
-plt.xlabel("year")
-plt.ylabel("profit in DKK")
-plt.title("yerly profit from 2019 to 2023")
-
-"""
-"""
-prof2 = []
-
-params = {
-    'Pmax': 5,
-    'n_c': 0.95,
-    'n_d': 0.95,
-    'Cmax': 10
-}
-
-params['C_0'] = 0.1 * params['Cmax']
-params['C_n'] = 0.5 * params['Cmax']
-
-for year in range(2019, 2024):
-    t_s = pd.Timestamp(dt.datetime(year, 1, 1, 0, 0, 0))
-    t_e = pd.Timestamp(dt.datetime(year, 12, 31, 23, 0, 0))
-    p = df_prices.loc[(df_prices["HourDK"]>=t_s) & (df_prices["HourDK"]<=t_e),"Sell"].values
-    profitOpt, p_cOpt, p_dOpt, XOpt, daylprof = Optimizer(params, p)
-    print("Profit for " + str(year) + ": " + str(profitOpt) + " DKK.")
-    #print(daylprof)
-    prof2.append(profitOpt)
-
-
-prof3 = []
-
-params = {
-    'Pmax': 5,
-    'n_c': 0.90,
-    'n_d': 0.90,
-    'Cmax': 10
-}
-
-params['C_0'] = 0.1 * params['Cmax']
-params['C_n'] = 0.5 * params['Cmax']
-
-for year in range(2019, 2024):
-    t_s = pd.Timestamp(dt.datetime(year, 1, 1, 0, 0, 0))
-    t_e = pd.Timestamp(dt.datetime(year, 12, 31, 23, 0, 0))
-    p = df_prices.loc[(df_prices["HourDK"]>=t_s) & (df_prices["HourDK"]<=t_e),"Sell"].values
-    profitOpt, p_cOpt, p_dOpt, XOpt, daylprof = Optimizer(params, p)
-    print("Profit for " + str(year) + ": " + str(profitOpt) + " DKK.")
-    #print(daylprof)
-    prof3.append(profitOpt)
-    
-
-plt.figure()
-plt.bar(Yearly["Year"], prof, label="Efficientcy 0.99")
-plt.bar(Yearly["Year"], prof2, label="Efficientcy 0.95")
-plt.bar(Yearly["Year"], prof3, label="Efficientcy 0.90")
-plt.xlabel("Year")
-plt.ylabel("Profit in DKK")
-plt.title("Yearly Profit from 2019 to 2023")
-plt.legend()
-plt.show()
-
-
-"""
-
-
-""""
-# Define the start and end time to filter your price data
-t_s2019 = pd.Timestamp(dt.datetime(2019, 1, 1, 0, 0, 0))
-t_e2019 = pd.Timestamp(dt.datetime(2019, 12, 31, 23, 0, 0))
-
-
-p2019 = df_prices.loc[(df_prices["HourDK"]>=t_s2019) & (df_prices["HourDK"]<=t_e2019),"Sell"].values
-
-profitOpt2019, p_cOpt, p_dOpt, XOpt = Optimizer(params, p2019)
-
-print("The profit is equal to:", profitOpt2019)
-
-t_s2020 = pd.Timestamp(dt.datetime(2020, 1, 1, 0, 0, 0))
-t_e2020 = pd.Timestamp(dt.datetime(2020, 12, 31, 23, 0, 0))
-
-p2020 = df_prices.loc[(df_prices["HourDK"]>=t_s2020) & (df_prices["HourDK"]<=t_e2020),"Sell"].values
-
-profitOpt2020, p_cOpt, p_dOpt, XOpt = Optimizer(params, p2020)
-
-print("The profit is equal to:", profitOpt2020)
-
-t_s2021 = pd.Timestamp(dt.datetime(2021, 1, 1, 0, 0, 0))
-t_e2021 = pd.Timestamp(dt.datetime(2021, 12, 31, 23, 0, 0))
-
-p2021 = df_prices.loc[(df_prices["HourDK"]>=t_s2021) & (df_prices["HourDK"]<=t_e2021),"Sell"].values
-
-profitOpt2021, p_cOpt, p_dOpt, XOpt = Optimizer(params, p2021)
-
-print("The profit is equal to:", profitOpt2021)
-
-t_s2022 = pd.Timestamp(dt.datetime(2022, 1, 1, 0, 0, 0))
-t_e2022 = pd.Timestamp(dt.datetime(2022, 12, 31, 23, 0, 0))
-
-p2022 = df_prices.loc[(df_prices["HourDK"]>=t_s2022) & (df_prices["HourDK"]<=t_e2022),"Sell"].values
-
-profitOpt2022, p_cOpt, p_dOpt, XOpt = Optimizer(params, p2022)
-
-print("The profit is equal to:", profitOpt2022)
-
-t_s2023 = pd.Timestamp(dt.datetime(2023, 1, 1, 0, 0, 0))
-t_e2023 = pd.Timestamp(dt.datetime(2023, 12, 31, 23, 0, 0))
-
-p2023 = df_prices.loc[(df_prices["HourDK"]>=t_s2023) & (df_prices["HourDK"]<=t_e2023),"Sell"].values
-
-profitOpt2023, p_cOpt, p_dOpt, XOpt = Optimizer(params, p2023)
-
-print("The profit is equal to:", profitOpt2023)
-                       
-profit = [profitOpt2019, profitOpt2020, profitOpt2021, profitOpt2022, profitOpt2023]
-
-
-plt.figure()
-plt.bar(Yearly["Year"],profit)
-plt.xlabel("year")
-plt.ylabel("profit in DKK")
-plt.title("yerly profit from 2019 to 2023")
-"""
-
-
-
-
-
-
-"""""
-#ryk rundt på det her
-df_pro["Month"] = df_pro["HourDK"].dt.month
-df_pro["Year"] = df_pro["HourDK"].dt.year
-df_pro["DayOfMonth"] = df_pro["HourDK"].dt.day
-df_prices["Month"] = df_prices["HourDK"].dt.month
-df_prices["Year"] = df_prices["HourDK"].dt.year
-df_prices["Day"] = df_prices["HourDK"].dt.day
-df_pro["Buy"] = df_prices["Buy"]
-df_pro["Sell"] = df_prices["Sell"]
-
-
-Net = Netting(df_pro, df_prices)
-print("The yearly netting results are: \n", Net[["Year","Profit"]])
-"""
-
-
-
-
-# %%
