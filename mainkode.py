@@ -21,7 +21,7 @@ Yearly = Yearly.rename(columns={'HourDK': 'Year'})
 plt.figure()
 plt.bar(Yearly["Year"],Yearly["SpotPriceDKK"])
 plt.xlabel("year")
-plt.ylabel("Price in DKK/mWh")
+plt.ylabel("Price in DKK/MWh")
 plt.title("Evolution of DK2 spot prices")
 
 
@@ -352,25 +352,26 @@ df_scatter["cumulative_savings"] = df_scatter["savings"].cumsum()
 x =regtime
 y = df_scatter["cumulative_savings"].values
 
-# Create polynomial features
-poly = PolynomialFeatures(degree=3, include_bias=False).fit_transform(x.reshape(-1, 1))
+# Fit linear regression model
+LinReg = LinearRegression().fit(x.reshape(-1, 1), y)
+LinPred = LinReg.predict(x.reshape(-1, 1))
 
-# Fit linear regression model on polynomial features
-LinReg_poly = LinearRegression().fit(poly, y)
-LinPred_poly = LinReg_poly.predict(poly)
+x_pred = 7300
+y_pred = LinReg.predict([[x_pred]])
+print("Predicted y for x =", x_pred, "is", y_pred)
 
-# Print the residuals, intercept, and coefficients
-print("Intercept (beta0):", LinReg_poly.intercept_)
-print("Coefficients (beta1, beta2, beta3):", LinReg_poly.coef_)
+# Print the intercept and coefficient
+print("Intercept (beta0):", LinReg.intercept_)
+print("Coefficient (beta1):", LinReg.coef_)
 
 # Plot the scatter plot and regression line
 plt.scatter(x, y, c='b', alpha=0.5, label='Data')
-plt.plot(x, LinPred_poly, color='r', label='Regression Line')
+plt.plot(x, LinPred, color='r', label='Regression Line')
 
 # Set the labels for x-, y-axes & title
-plt.xlabel('Descriptive Variable (x)')
-plt.ylabel('Predicted Variable (y)')
-plt.title('3rd Degree Polynomial Regression Model')
+plt.xlabel('Days in 2 years')
+plt.ylabel('Cumulative Savings (DKK)')
+plt.title('Linear Regression Model')
 
 # Show the legends & plot
 plt.legend()
@@ -439,7 +440,7 @@ plt.figure()
 plt.plot(consuption_cost)
 plt.xlabel("day")
 plt.ylabel("Consumption Cost (DKK)")
-plt.title("Monthly Consumption Cost")
+plt.title("dayly Consumption Cost")
 plt.show()
 
 #%%
