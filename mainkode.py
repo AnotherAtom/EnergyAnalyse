@@ -277,7 +277,7 @@ df_pro['consumer_cost'] = df_pro['Load'] * df_prices['Buy']
 df_pro["Month"] = df_pro["HourDK"].dt.month
 df_pro["Year"] = df_pro["HourDK"].dt.year
 yearly_consumer_cost = df_pro.groupby('Year')['consumer_cost'].sum().reset_index()
-print("Consumer cost for each year: \n", yearly_consumer_cost)
+print("price for load for each year exatly: \n", yearly_consumer_cost)
 
 # Yearly estimate of load
 df_year_load = df_pro.groupby(df_pro["HourDK"].dt.year)["Load"].sum().reset_index()
@@ -289,25 +289,29 @@ print("\n Average buying for each year: \n", df_year_buy)
 
 load_price_year = df_year_buy["Buy"] * df_year_load["Load"]
 
-print("\n Total price for load for each year: \n", load_price_year)
+print("\n price for load for each year using avage price: \n", load_price_year)
 
 # 3.2
 
 Net = Netting(df_pro, df_prices)
 
-# Consumer cost er negativ 
-print(yearly_consumer_cost["consumer_cost"])
-print(Net["Profit"])
+# Consumer cost is a expense but is a positive number, while profit is a gain and is a negative number
+# so we add them together to get the yearly benefit of the system in terms of savings
+
+
+print("yearly benefit of the system")
 print(yearly_consumer_cost["consumer_cost"] + Net["Profit"])
 
 df_pro["savings"] = df_pro["Profit"] + df_pro["consumer_cost"]
 
-df_pro["Profit"] + df_pro["consumer_cost"]
 
-df_scatter = df_pro.groupby(df_pro["HourDK"].dt.date)["savings"].sum().reset_index()
+
+
 
 
 #%% 
+
+df_scatter = df_pro.groupby(df_pro["HourDK"].dt.date)["savings"].sum().reset_index()
 regtime = np.arange(0, len(df_scatter["HourDK"]))
 
 df_scatter["cumulative_savings"] = df_scatter["savings"].cumsum()
@@ -331,15 +335,16 @@ print("Coefficient (beta1):", LinReg.coef_)
 #%% Plot the scatter plot and regression line
 plt.scatter(x, y, c='b', alpha=0.5, label='Data', s = 5)
 plt.plot(x, LinPred, color='r', label='Regression Line')
-
-#%% Set the labels for x-, y-axes & title
 plt.xlabel('Days in 2 years')
 plt.ylabel('Cumulative savings [DKK]')
 plt.title('Linear regression model')
-
-#%% Show the legends & plot
 plt.legend()
 plt.show()
+
+
+
+
+#%% plot the scatter plot
 
 plt.scatter(df_scatter["HourDK"], df_scatter["savings"])
 plt.xlabel("Months in 2 years")
@@ -361,6 +366,7 @@ params['C_0'] = 0.1 * params['Cmax']
 params['C_n'] = 0.5 * params['Cmax']
 
 consuption_cost = []
+yearly_consup_cost = []
 total_cost = 0
 
 #%% Loop through each day accounting for leap years, optimize, present yearly
@@ -390,6 +396,7 @@ for year in range(2022, 2024):
             consuption_cost.append(costOpt)
             total_cost += costOpt
     print("The cost for " + str(year) + " is equal to: " + str(total_cost) + " DKK.")
+    yearly_consup_cost.append(total_cost)
     total_cost = 0
 
 #%% Plot daily consumption cost
@@ -399,3 +406,27 @@ plt.xlabel("Days in 2 years")
 plt.ylabel("Consumption cost [DKK]")
 plt.title("Daily consumption cost")
 plt.show()
+
+
+print(yearly_consup_cost)
+
+consuption_cost = np.array(consuption_cost)
+
+consuption_cost_cum=consuption_cost.cumsum()
+
+#%% Plot the cumulative consumption cost
+plt.plot(consuption_cost_cum)
+plt.xlabel("Days in 2 years")
+plt.ylabel("Cumulative consumption cost [DKK]")
+plt.title("Cumulative consumption cost")
+plt.show()
+
+print("benefit of the system of battery and solar panel over nothing in terms of savings")
+print(yearly_consumer_cost["consumer_cost"]-yearly_consup_cost)
+
+print("benefit of the system of battery and solar panel over PV in terms of savings")
+print(yearly_consumer_cost["consumer_cost"]-yearly_consup_cost+Net["Profit"])
+
+
+
+# %%
