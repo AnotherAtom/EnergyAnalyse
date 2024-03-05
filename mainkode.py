@@ -9,6 +9,7 @@ from Functions import ProsumerOptimizer
 from Functions import Netting
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
+import unicodedata as ud
 #%%
 
 ### Import price and prosumer data ###
@@ -20,8 +21,8 @@ Yearly = Yearly.rename(columns={'HourDK': 'Year'})
 
 plt.figure()
 plt.bar(Yearly["Year"],Yearly["SpotPriceDKK"])
-plt.xlabel("year")
-plt.ylabel("Price in DKK/MWh")
+plt.xlabel("Year")
+plt.ylabel("Price [DKK/MWh]")
 plt.title("Evolution of DK2 spot prices")
 
 
@@ -66,40 +67,35 @@ hourly2023 = hourly2023.rename(columns={'HourDK': 'Hour'})
 
 axs[0, 0].bar(hourly['Hour'], hourly['SpotPriceDKK'])
 axs[0, 0].set_xlabel('Hour')
-axs[0, 0].set_ylabel('Average Spot Price (DKK/MWh)')
-axs[0, 0].set_title('Hourly Average Spot Price 2019-2023')
+axs[0, 0].set_ylabel('Average Spot Price [DKK/MWh]')
 axs[0, 0].set_ylim([0, max(hourly2022['SpotPriceDKK'])+100])
 
 axs[0, 1].bar(hourly2019['Hour'], hourly2019['SpotPriceDKK'])
 axs[0, 1].set_xlabel('Hour')
-axs[0, 1].set_ylabel('Average Spot Price (DKK/MWh)')
-axs[0, 1].set_title('Hourly Average Spot Price 2019')
+axs[0, 1].set_ylabel('Average Spot Price [DKK/MWh]')
 axs[0, 1].set_ylim([0, max(hourly2022['SpotPriceDKK'])+100])
 
 axs[0, 2].bar(hourly2020['Hour'], hourly2020['SpotPriceDKK'])
 axs[0, 2].set_xlabel('Hour')
-axs[0, 2].set_ylabel('Average Spot Price (DKK/MWh)')
-axs[0, 2].set_title('Hourly Average Spot Price 2020')
+axs[0, 2].set_ylabel('Average Spot Price [DKK/MWh]')
 axs[0, 2].set_ylim([0, max(hourly2022['SpotPriceDKK'])+100])
 
 axs[1, 0].bar(hourly2021['Hour'], hourly2021['SpotPriceDKK'])
 axs[1, 0].set_xlabel('Hour')
-axs[1, 0].set_ylabel('Average Spot Price (DKK/MWh)')
-axs[1, 0].set_title('Hourly Average Spot Price 2021')
+axs[1, 0].set_ylabel('Average Spot Price [DKK/MWh]')
 axs[1, 0].set_ylim([0, max(hourly2022['SpotPriceDKK'])+100])
 
 axs[1, 1].bar(hourly2022['Hour'], hourly2022['SpotPriceDKK'])
 axs[1, 1].set_xlabel('Hour')
-axs[1, 1].set_ylabel('Average Spot Price (DKK/MWh)')
-axs[1, 1].set_title('Hourly Average Spot Price 2022')
+axs[1, 1].set_ylabel('Average Spot Price [DKK/MWh]')
 axs[1, 1].set_ylim([0, max(hourly2022['SpotPriceDKK'])+100])
 
 axs[1, 2].bar(hourly2023['Hour'], hourly2023['SpotPriceDKK'])
 axs[1, 2].set_xlabel('Hour')
-axs[1, 2].set_ylabel('Average Spot Price (DKK/MWh)')
-axs[1, 2].set_title('Hourly Average Spot Price 2023')
+axs[1, 2].set_ylabel('Average Spot Price [DKK/MWh]')
 axs[1, 2].set_ylim([0, max(hourly2022['SpotPriceDKK'])+100])
 
+fig.suptitle('Hourly average spot price 2023', size = 24)
 
 plt.tight_layout()
 plt.show()
@@ -161,8 +157,8 @@ for year in range(2019, 2024):
 
 plt.figure()
 plt.bar(Yearly["Year"],yearprf)
-plt.xlabel("year")
-plt.ylabel("profit in DKK")
+plt.xlabel("Year")
+plt.ylabel("Profit [DKK]")
 plt.title("Yearly profit from 2019 to 2023")
 plt.show()
 plt.close()
@@ -172,15 +168,15 @@ plt.close()
 plt.figure()
 plt.bar(daily_avg_prices["HourDK"],daylyprofit)
 plt.bar(daily_avg_prices["HourDK"],daily_avg_prices["Buy"]/1000)
-plt.xlabel("year")
+plt.xlabel("Year")
 plt.ylabel("DKK")
-plt.legend(["Profit in dkk", "Price in DKK/kWh"])
-plt.title("Dayly profit and Price from 2019 to 2023")
+plt.legend(["Profit in [DKK]", "Price [DKK/kWh]"])
+plt.title("Daily profit and price from 2019 to 2023")
 plt.show()
 plt.close()
 
 correlation = np.corrcoef(daylyprofit, daily_avg_prices["Buy"])
-print("The correlation between the dayly profit and the price is: " + str(correlation[0,1]))
+print("The correlation between the daily profit and the price is: " + str(correlation[0,1]))
 
 
 
@@ -223,7 +219,6 @@ for year in range(2019, 2024):
             prof.append(profitOpt)
             daylyprofit95.append(profitOpt)
     profsum95 = sum(prof)
-    #print("Profit for " + str(year) + ": " + str(profsum) + " DKK.")
     yearprf95.append(profsum95)
 
 
@@ -265,7 +260,6 @@ for year in range(2019, 2024):
             prof.append(profitOpt)
             daylyprofit90.append(profitOpt)
     profsum90 = sum(prof)
-    #print("Profit for " + str(year) + ": " + str(profsum) + " DKK.")
     yearprf90.append(profsum90)
 
     
@@ -273,10 +267,10 @@ plt.figure()
 plt.bar(Yearly["Year"],yearprf)
 plt.bar(Yearly["Year"],yearprf95)
 plt.bar(Yearly["Year"],yearprf90)
-plt.xlabel("year")
-plt.ylabel("profit in DKK")
-plt.title("yerly profit from 2019 to 2023")
-plt.legend(["Efficiency 0.99", "Efficiency 0.95", "Efficiency 0.90"])
+plt.xlabel("Year")
+plt.ylabel("Profit [DKK]")
+plt.title("Yearly profit from 2019 to 2023")
+plt.legend(["\u03B7 = 0.99", "\u03B7 = 0.95", "\u03B7 = 0.90"])
 plt.show()
 
 
@@ -304,16 +298,16 @@ print(yearly_consumer_cost)
 
 # årligt esteimat for forbrug
 df_year_load = df_pro.groupby(df_pro["HourDK"].dt.year)["Load"].sum().reset_index()
-print( "total load for each year: \n", df_year_load)
+print( "Total load for each year: \n", df_year_load)
 
 
 df_year_buy = df_prices.loc[df_prices["HourDK"].dt.year.isin([2022, 2023])].groupby(df_prices["HourDK"].dt.year)["Buy"].mean().reset_index()
 
-print("avage price for buy for each year: \n", df_year_buy)
+print("Average price for buy for each year: \n", df_year_buy)
 
 load_price_year = df_year_buy["Buy"] * df_year_load["Load"]
 
-print("total price for load for each year: \n", load_price_year)
+print("Total price for load for each year: \n", load_price_year)
 
 
 #3.2
@@ -365,13 +359,13 @@ print("Intercept (beta0):", LinReg.intercept_)
 print("Coefficient (beta1):", LinReg.coef_)
 
 # Plot the scatter plot and regression line
-plt.scatter(x, y, c='b', alpha=0.5, label='Data')
+plt.scatter(x, y, c='b', alpha=0.5, label='Data', s = 5)
 plt.plot(x, LinPred, color='r', label='Regression Line')
 
 # Set the labels for x-, y-axes & title
 plt.xlabel('Days in 2 years')
-plt.ylabel('Cumulative Savings (DKK)')
-plt.title('Linear Regression Model')
+plt.ylabel('Cumulative savings [DKK]')
+plt.title('Linear regression model')
 
 # Show the legends & plot
 plt.legend()
@@ -381,9 +375,10 @@ plt.show()
 
 
 plt.scatter(df_scatter["HourDK"], df_scatter["savings"])
-plt.xlabel("Time")
-plt.ylabel("Savings")
-plt.title("Savings over Time")
+plt.xlabel("Months in 2 years")
+plt.ylabel("Savings [DKK]")
+plt.xticks(rotation=60)
+plt.title("Savings over time")
 plt.show()
 
 
@@ -431,16 +426,15 @@ for year in range(2022, 2024):
             costOpt, p_cOpt, p_dOpt, p_bOpt, p_sOpt, XOpt = ProsumerOptimizer(params, l_b, l_s, p_PV, p_L)
             consuption_cost.append(costOpt)
             total_cost += costOpt
-            #print(" costOpt" + str(costOpt) + "+p_cOpt" + str(p_cOpt) + "+p_dOpt" + str(p_dOpt) + "+p_bOpt" + str(p_bOpt) + "+p_sOpt" + str(p_sOpt) + "+XOpt" + str(XOpt))
-    print("The cost for " + str(year) + " is equal to:" + str(total_cost) + " DKK.")
+    print("The cost for " + str(year) + " is equal to: " + str(total_cost) + " DKK.")
     total_cost = 0
 
 
 plt.figure()  
 plt.plot(consuption_cost)
-plt.xlabel("day")
-plt.ylabel("Consumption Cost (DKK)")
-plt.title("dayly Consumption Cost")
+plt.xlabel("Days in 2 years")
+plt.ylabel("Consumption cost [DKK]")
+plt.title("Daily consumption cost")
 plt.show()
 
 #%%
